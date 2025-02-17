@@ -1,3 +1,4 @@
+<?php session_start();?>
 <!DOCTYPE html>
 <html lang="ru">
 <head>
@@ -9,6 +10,10 @@
 <body>
     <div class="form-container">
         <h1>Добавление тренера</h1>
+        <p id="message"><?php if (isset($_SESSION['message'])) {
+            echo $_SESSION['message'];
+            unset($_SESSION['message']);
+        }?>
         <form action="form.php" method="POST">
             <div class="form-line">
                 <label for="name">Тренер:</label>
@@ -16,7 +21,7 @@
             </div>
             <div class="form-line">
                 <label for="age">Возраст:</label>
-                <input type="text" id="age" name="age" required placeholder="Введите возраст">
+                <input type="number" id="age" name="age" required placeholder="Введите возраст">
             </div>
             <div class="form-line">
                 <label for="gender">Пол:</label>
