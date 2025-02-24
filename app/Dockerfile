@@ -4,3 +4,5 @@ RUN apt-get update && apt-get install -y libpq-dev
 RUN docker-php-ext-install pdo pdo_pgsql
 
 COPY . /var/www/html/
+
+# FROM mcr.microsoft.com/windows/servercore:ltsc2022

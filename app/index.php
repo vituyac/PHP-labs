@@ -14,20 +14,28 @@
             echo $_SESSION['message'];
             unset($_SESSION['message']);
         }?>
-        <form action="form.php" method="POST">
+        <form action="form.php" method="POST" onsubmit="return validateEmail()">
             <div class="form-line">
                 <label for="name">Тренер:</label>
-                <input type="text" id="name" name="name" required placeholder="Введите имя">
+                <input type="text" id="name" name="name" pattern="[^0-9]+" title="Только буквы, без цифр" required placeholder="Введите имя">
             </div>
             <div class="form-line">
                 <label for="age">Возраст:</label>
-                <input type="number" id="age" name="age" required placeholder="Введите возраст">
+                <input type="number" id="age" name="age" min="18" max="100" required placeholder="Введите возраст">
             </div>
             <div class="form-line">
                 <label for="gender">Пол:</label>
                 <select id="gender" name="gender" required>
                     <option value="male">Мужской</option>
                     <option value="female">Женский</option>
+                </select>
+            </div>
+            <div class="form-line">
+                <label for="gym">Зал:</label>
+                <select id="gym" name="gym" required>
+                    <option value="1">Липецк, Московская 30</option>
+                    <option value="2">Липецк, Московская 31</option>
+                    <option value="3">Липецк, Московская 32</option>
                 </select>
             </div>
             <div class="form-line">
@@ -41,5 +49,6 @@
             <input type="submit" value="Отправить">
         </form>
     </div>
+    <script src="script.js"></script>
 </body>
 </html>
