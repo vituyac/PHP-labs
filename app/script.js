@@ -63,8 +63,50 @@ document.getElementById("age").addEventListener("input", function () {
 });
 
 document.getElementById("name").addEventListener("input", function () {
-    this.value = this.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s]/g, ""); // Убираем всё, кроме букв и пробелов
+    this.value = this.value.replace(/[^a-zA-Zа-яА-ЯёЁ\s]/g, "");
     if (this.value.length > 20) {
         this.value = this.value.slice(0, 20);
     }
 });
+
+async function loadTrainers() {
+    try {
+        const response = await fetch('form.php');
+        const trainers = await response.json();
+        const container = document.getElementById('trainer-items');
+
+        if (trainers.length === 0) {
+            container.innerHTML = "<p>Пока нет добавленных тренеров</p>";
+            return;
+        }
+
+        container.innerHTML = '';
+        trainers.forEach(t => {
+            const div = document.createElement('div');
+            div.className = 'trainer';
+            div.innerHTML = `
+                <h3>${t.name} (${t.age})</h3>
+                <p>Пол: ${t.gender === 'male' ? 'Мужской' : 'Женский'}</p>
+                <p>Телефон: ${t.phone}</p>
+                <p>Email: ${t.email}</p>
+                <p>Зал: ${getGymName(t.gym)}</p>
+            `;
+            container.appendChild(div);
+        });
+    } catch (err) {
+        document.getElementById('trainer-items').innerHTML = "<p>Ошибка загрузки данных</p>";
+        console.error(err);
+    }
+}
+
+function getGymName(id) {
+    switch (id) {
+        case '1': return 'Липецк, Московская 30';
+        case '2': return 'Липецк, Московская 31';
+        case '3': return 'Липецк, Московская 32';
+        default: return 'Неизвестно';
+    }
+}
+
+
+window.addEventListener('DOMContentLoaded', loadTrainers);

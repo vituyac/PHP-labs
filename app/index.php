@@ -49,6 +49,11 @@
             <input type="submit" value="Отправить">
         </form>
     </div>
+
+    <div class="trainers-list" id="trainers-list">
+        <h2>Список тренеров</h2>
+        <div id="trainer-items"></div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>

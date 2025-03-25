@@ -1,29 +1,27 @@
 <?php
-    session_start();
-    ob_start();
+session_start();
+require 'db/db.php';
 
-    if($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $name = trim($_POST['name']);
-        $age = trim($_POST['age']);
-        $gender = $_POST['gender'];
-        $phone = trim($_POST['phone']);
-        $email = trim($_POST['email']);
-        $gym = $_POST['gym'];
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $name = trim($_POST['name']);
+    $age = trim($_POST['age']);
+    $gender = $_POST['gender'];
+    $phone = trim($_POST['phone']);
+    $email = trim($_POST['email']);
+    $gym = $_POST['gym'];
 
-        $csvFile = 'data.csv';
-        $dataRow = [$name, $age, $gender, $phone, $email, $gym];
+    $stmt = $pdo->prepare("INSERT INTO users_comments (name, age, gender, phone, email, gym) VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([$name, $age, $gender, $phone, $email, $gym]);
 
-        if (($file = fopen($csvFile, 'a')) !== false) {
-            fputcsv($file, $dataRow, ",", '"');
-            fclose($file);
-            $_SESSION['message'] = "Данные успешно сохранены";
-        } else {
-            $_SESSION['message'] = "Ошибка при сохранении данных";
-        }
+    $_SESSION['message'] = "Данные успешно сохранены";
+    header("Location: index.php");
+    exit();
+}
 
-        header("Location: index.php");
-        exit();
-    }    
-
-    ob_end_flush();
-?>
+if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+    header('Content-Type: application/json');
+    $stmt = $pdo->query("SELECT name, age, gender, phone, email, gym FROM users_comments");
+    $trainers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    echo json_encode($trainers);
+    exit();
+}

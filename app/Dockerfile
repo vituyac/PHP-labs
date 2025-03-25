@@ -1,8 +1,6 @@
 from php:8.2-apache
 
 RUN apt-get update && apt-get install -y libpq-dev
-RUN docker-php-ext-install pdo pdo_pgsql
+RUN docker-php-ext-install pdo pdo_pgsql pgsql
 
 COPY . /var/www/html/
-
-# FROM mcr.microsoft.com/windows/servercore:ltsc2022
