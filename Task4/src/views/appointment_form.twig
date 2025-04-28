@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Запись к тренеру</title>
+</head>
+<body>
+    <h2>Запись к тренеру</h2>
+
+    <form action="/appointments/add" method="POST">
+        <input type="hidden" name="coach_id" value="{{ coach_id }}">
+        <input type="text" name="name" placeholder="Ваше имя" required>
+        <input type="text" name="phone" placeholder="Ваш телефон" required>
+        <button type="submit">Записаться</button>
+    </form>
+
+    <br>
+    <a href="/coaches">Назад к списку тренеров</a>
+</body>
+</html>

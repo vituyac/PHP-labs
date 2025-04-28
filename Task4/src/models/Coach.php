@@ -40,5 +40,25 @@
                 'gym'   => $gym
             ]);
         }
+
+        public function deleteCoach(int $id): void
+        {
+            $stmt = $this->pdo->prepare('DELETE FROM coaches WHERE id = :id');
+            $stmt->execute(['id' => $id]);
+        }
+
+        public function existsByPhone(string $phone): bool
+        {
+            $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM coaches WHERE phone = :phone');
+            $stmt->execute(['phone' => $phone]);
+            return $stmt->fetchColumn() > 0;
+        }
+
+        public function existsByEmail(string $email): bool
+        {
+            $stmt = $this->pdo->prepare('SELECT COUNT(*) FROM coaches WHERE email = :email');
+            $stmt->execute(['email' => $email]);
+            return $stmt->fetchColumn() > 0;
+        }
     }
 ?>

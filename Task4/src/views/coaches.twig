@@ -3,45 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <title>Список тренеров</title>
+    <link rel="stylesheet" href="/css/coaches.css">
 </head>
 <body>
-    <h2>Список тренеров</h2>
+    <header>
+        <h2>Список тренеров</h2>
+        <a href="/coaches/add" class="add-button">Добавить нового тренера</a>
+    </header>
+
     <table border="1">
         <tr>
-            <th>ID</th>
             <th>Имя</th>
             <th>Возраст</th>
             <th>Пол</th>
             <th>Телефон</th>
             <th>Email</th>
             <th>Фитнес-клуб</th>
+            <th>Действия</th>
         </tr>
         {% for coach in coaches %}
         <tr>
-            <td>{{ coach.id }}</td>
             <td>{{ coach.name }}</td>
             <td>{{ coach.age }}</td>
             <td>{{ coach.gender }}</td>
             <td>{{ coach.phone }}</td>
             <td>{{ coach.email }}</td>
-            <td>{{ coach.gym }}</td>
+            <td>{{ gyms[coach.gym] ?? 'Неизвестно' }}</td>
+            <td id="actions">
+                <form action="/coaches/delete" method="POST" onsubmit="return confirm('Точно удалить тренера {{ coach.name }}?');">
+                    <input type="hidden" name="id" value="{{ coach.id }}">
+                    <button type="submit" class="delete-button">Удалить</button>
+                </form>
+                <form action="/appointments/add" method="GET">
+                    <input type="hidden" name="coach_id" value="{{ coach.id }}">
+                    <button type="submit" class="appointment">Записаться</button>
+                </form>
+            </td>
         </tr>
         {% endfor %}
     </table>
-
-    <h3>Добавить нового тренера</h3>
-    <form action="/coaches/add" method="POST">
-        <input type="text" name="name" placeholder="Имя" required>
-        <input type="number" name="age" placeholder="Возраст" required>
-        <select name="gender" required>
-            <option value="">Пол</option>
-            <option value="Мужской">Мужской</option>
-            <option value="Женский">Женский</option>
-        </select>
-        <input type="text" name="phone" placeholder="Телефон" required>
-        <input type="email" name="email" placeholder="Email" required>
-        <input type="text" name="gym" placeholder="Фитнес-клуб" required>
-        <button type="submit">Добавить</button>
-    </form>
 </body>
 </html>

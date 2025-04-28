@@ -8,3 +8,11 @@ CREATE TABLE IF NOT EXISTS coaches (
     gym VARCHAR(100) NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
+
+CREATE TABLE IF NOT EXISTS appointments (
+    id SERIAL PRIMARY KEY,
+    client_name VARCHAR(255) NOT NULL,
+    phone VARCHAR(20) NOT NULL,
+    coach_id INT NOT NULL,
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+);
