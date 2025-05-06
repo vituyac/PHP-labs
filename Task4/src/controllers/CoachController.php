@@ -1,88 +1,158 @@
 <?php
-    // Объявляет пространство имён для контроллера пользователей
-    namespace App\controllers;
+namespace App\controllers;
+use App\models\Coach;
+use App\models\Appointment;
+use Twig\Environment;
+use Twig\Loader\FilesystemLoader;
+use App\helpers\Auth;
 
-    // Подключает модель User для работы с базой данных
-    use App\models\Coach;
+require __DIR__ . '/../../vendor/autoload.php';
+use tFPDF;
 
-    // Подключает класс Twig Environment (шаблонизатор)
-    use Twig\Environment;
+class CoachController {
+    private Coach $coachModel;
+    private Environment $twig;
 
-    // Подключает загрузчик файловой системы Twig (для работы с шаблонами)
-    use Twig\Loader\FilesystemLoader;
+    public function __construct() {
+        $this->coachModel = new Coach();
+        $loader = new FilesystemLoader(__DIR__ . '/../views');
+        $this->twig = new Environment($loader);
+    }
 
-    // Определяет класс контроллера пользователей
-    class CoachController {
-        // Приватное свойство для работы с моделью пользователей (экземпляр User)
-        private Coach $coachModel;
-
-        // Приватное свойство для работы с шаблонизатором Twig
-        private Environment $twig;
-
-        // Конструктор класса, вызывается при создании объекта UserController
-        public function __construct() {
-            // Создаёт объект модели User для взаимодействия с базой данных
-            $this->coachModel = new Coach();
-
-            // Создаёт загрузчик шаблонов Twig, указывая путь к папке views
-            $loader = new FilesystemLoader(__DIR__ . '/../views');
-
-            // Создаёт объект Twig для рендеринга шаблонов
-            $this->twig = new Environment($loader);
-        }
-
-        public function index(): void {
-            $gyms = [
-                1 => 'Липецк, Московская 30',
-                2 => 'Липецк, Московская 31',
-                3 => 'Липецк, Московская 32',
-            ];
-            
-            $coaches = $this->coachModel->getAll();
-
-            // Рендерит шаблон users.twig и передаёт в него массив с пользователями
-            echo $this->twig->render('coaches.twig', ['coaches' => $coaches, 'gyms' => $gyms]);
-        }
-
-        // Показ формы добавления тренера
-        public function create(): void {
-            echo $this->twig->render('add_coach.twig');
-        }
-
-        public function delete(): void
-        {
-            if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
-                $this->coachModel->deleteCoach((int) $_POST['id']);
+    public function index(): void {
+        $gyms = [
+            1 => 'Липецк, Московская 30',
+            2 => 'Липецк, Московская 31',
+            3 => 'Липецк, Московская 32',
+        ];
+    
+        $coaches = $this->coachModel->getAll();
+    
+        $is_logged_in = Auth::isLoggedIn();
+        $is_admin = Auth::isAdmin();
+        $username = Auth::getUsername();
+        $user_id = $_SESSION['user_id'] ?? null;
+    
+        $booked_coach_id = null;
+        $occupied_coach_ids = [];
+    
+        if ($is_logged_in && $user_id) {
+            $appointmentModel = new \App\models\Appointment();
+    
+            $booked_coach_id = $appointmentModel->getUserAppointmentCoachId($user_id);
+            foreach ($coaches as $coach) {
+                if ($appointmentModel->isCoachBooked($coach['id'])) {
+                    $occupied_coach_ids[] = $coach['id'];
+                }
             }
+        }
+    
+        echo $this->twig->render('coaches.twig', [
+            'coaches' => $coaches,
+            'gyms' => $gyms,
+            'is_admin' => $is_admin,
+            'is_logged_in' => $is_logged_in,
+            'username' => $username,
+            'booked_coach_id' => $booked_coach_id,
+            'occupied_coach_ids' => $occupied_coach_ids
+        ]);
+    }
+    
+
+    public function create(): void {
+        if (!Auth::isAdmin()) {
             header("Location: /coaches");
             exit;
         }
 
-        // Метод для обработки запроса POST /users/add (добавление пользователя)
-        public function store(): void {
-            // Проверяет, что запрос был отправлен методом POST
-            if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-                $phoneExists = $this->coachModel->existsByPhone($_POST['phone']);
-                $emailExists = $this->coachModel->existsByEmail($_POST['email']);
-
-                if ($phoneExists || $emailExists) {
-
-                    if ($phoneExists) {
-                        $errorMessage = 'Номер телефона уже используется';
-                    }
-                    if ($emailExists) {
-                        $errorMessage = 'Email уже используется';
-                    }
-
-                    echo "<script>alert('$errorMessage'); window.history.back();</script>";
-                    exit;
-                }
-
-                // Вызывает метод addUser у модели User, передавая имя, email и возраст пользователя
-                $this->coachModel->addCoach($_POST['name'], (int) $_POST['age'], $_POST['gender'], $_POST['phone'], $_POST['email'], $_POST['gym']);
-            }
-            // Перенаправляет пользователя обратно на страницу /users после добавления
-            header("Location: /coaches");
-        }
+        echo $this->twig->render('add_coach.twig', [
+            'username' => Auth::getUsername()
+        ]);
     }
-?>
+
+    public function delete(): void {
+        if (!Auth::isAdmin()) {
+            header("Location: /coaches");
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['id'])) {
+            $this->coachModel->deleteCoach((int) $_POST['id']);
+        }
+
+        header("Location: /coaches");
+        exit;
+    }
+
+    public function store(): void {
+        if (!Auth::isAdmin()) {
+            header("Location: /coaches");
+            exit;
+        }
+
+        if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+            $phoneExists = $this->coachModel->existsByPhone($_POST['phone']);
+            $emailExists = $this->coachModel->existsByEmail($_POST['email']);
+
+            if ($phoneExists || $emailExists) {
+                $errorMessage = $phoneExists ? 'Номер телефона уже используется' : 'Email уже используется';
+                echo "<script>alert('$errorMessage'); window.history.back();</script>";
+                exit;
+            }
+
+            $this->coachModel->addCoach(
+                $_POST['name'],
+                (int) $_POST['age'],
+                $_POST['gender'],
+                $_POST['phone'],
+                $_POST['email'],
+                $_POST['gym']
+            );
+        }
+
+        header("Location: /coaches");
+    }
+
+    public function report(): void {
+        if (!\App\helpers\Auth::isAdmin()) {
+            header("Location: /coaches");
+            exit;
+        }
+    
+        $coaches = $this->coachModel->getAll();
+    
+        $encodeText = function (string $text): string {
+            return iconv('UTF-8', 'CP1251//IGNORE', $text);
+        };
+    
+        $pdf = new tFPDF();
+        $pdf->AddPage();
+        
+        $pdf->AddFont('DejaVu', '', 'DejaVuSans.ttf', true);
+        $pdf->SetFont('DejaVu', '', 10);
+    
+        $pdf->Cell(10, 10, $encodeText('ID'), 1);
+        $pdf->Cell(35, 10, $encodeText('Name'), 1);
+        $pdf->Cell(15, 10, $encodeText('Age'), 1);
+        $pdf->Cell(20, 10, $encodeText('Gender'), 1);
+        $pdf->Cell(30, 10, $encodeText('Phone'), 1);
+        $pdf->Cell(50, 10, $encodeText('Email'), 1);
+        $pdf->Cell(30, 10, $encodeText('Gym'), 1);
+        $pdf->Ln();
+    
+        foreach ($coaches as $coach) {
+            $pdf->Cell(10, 10, $coach['id'], 1);
+            $pdf->Cell(35, 10, $encodeText($coach['name']), 1);
+            $pdf->Cell(15, 10, $encodeText($coach['age']), 1);
+            $pdf->Cell(20, 10, $encodeText($coach['gender']), 1);
+            $pdf->Cell(30, 10, $encodeText($coach['phone']), 1);
+            $pdf->Cell(50, 10, $encodeText($coach['email']), 1);
+            $pdf->Cell(30, 10, $encodeText($coach['gym']), 1);
+            $pdf->Ln();
+        }
+    
+        $pdf->Output('D', 'coaches_report.pdf');
+        exit;
+    }
+    
+}

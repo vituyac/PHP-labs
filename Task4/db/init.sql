@@ -9,10 +9,22 @@ CREATE TABLE IF NOT EXISTS coaches (
     created_at TIMESTAMP DEFAULT NOW()
 );
 
+CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    username VARCHAR(100) UNIQUE,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    role VARCHAR(50) DEFAULT 'user',
+    created_at TIMESTAMP DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS appointments (
     id SERIAL PRIMARY KEY,
     client_name VARCHAR(255) NOT NULL,
     phone VARCHAR(20) NOT NULL,
-    coach_id INT NOT NULL,
-    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE
+    coach_id INT UNIQUE,
+    user_id INT UNIQUE,
+    created_at TIMESTAMP DEFAULT NOW(),
+    FOREIGN KEY (coach_id) REFERENCES coaches(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );

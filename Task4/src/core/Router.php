@@ -1,41 +1,43 @@
 <?php
-    // Объявляет пространство имён для маршрутизатора (Router)
-    namespace App\core;
 
-    // Определяет класс Router для управления маршрутами в приложении
-    class Router {
-        // Приватное свойство для хранения маршрутов (GET и POST)
-        private array $routes = [];
+namespace App\core;
 
-        // Метод для регистрации GET-маршрута
-        public function get(string $route, callable $callback): void {
-            // Добавляет маршрут в массив $routes с ключом 'GET'
-            $this->routes['GET'][$route] = $callback;
+class Router {
+    private array $routes = [];
+
+    public function get(string $route, $callback): void {
+        $this->routes['GET'][$route] = $callback;
+    }
+
+    public function post(string $route, $callback): void {
+        $this->routes['POST'][$route] = $callback;
+    }
+
+    public function resolve(): void {
+        $method = $_SERVER['REQUEST_METHOD'];
+        $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
+
+        $callback = $this->routes[$method][$path] ?? null;
+
+        if (!$callback) {
+            http_response_code(404);
+            echo "404 Not Found";
+            return;
         }
 
-        // Метод для регистрации POST-маршрута
-        public function post(string $route, callable $callback): void {
-            // Добавляет маршрут в массив $routes с ключом 'POST'
-            $this->routes['POST'][$route] = $callback;
-        }
-
-        // Метод для обработки входящего запроса и поиска соответствующего маршрута
-        public function resolve(): void {
-            // Получает метод HTTP-запроса (GET или POST)
-            $method = $_SERVER['REQUEST_METHOD'];
-
-            // Получает путь из URL (например, /users)
-            $path = parse_url($_SERVER['REQUEST_URI'], PHP_URL_PATH);
-            
-            // Проверяет, есть ли маршрут для указанного метода и пути
-            if (isset($this->routes[$method][$path])) {
-                // Вызывает соответствующую функцию-обработчик маршрута
-                call_user_func($this->routes[$method][$path]);
+        if (is_callable($callback)) {
+            call_user_func($callback);
+        } elseif (is_array($callback) && count($callback) === 2) {
+            [$controller, $method] = $callback;
+            if (is_object($controller) && method_exists($controller, $method)) {
+                call_user_func([$controller, $method]);
             } else {
-                // Если маршрут не найден, возвращает 404 Not Found
-                http_response_code(404);
-                echo "404 Not Found";
+                http_response_code(500);
+                echo "500 Internal Server Error (Invalid controller method)";
             }
+        } else {
+            http_response_code(500);
+            echo "500 Internal Server Error (Invalid route callback)";
         }
     }
-?>
+}

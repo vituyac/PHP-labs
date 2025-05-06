@@ -7,6 +7,9 @@
 </head>
 <body>
     <h2>Добавить нового тренера</h2>
+    {% if username %}
+        <p>Вы вошли как: {{ username }} | <a href="/logout">Выйти</a></p>
+    {% endif %}
     <form action="/coaches/add" method="POST">
         <input type="text" name="name" id="name" placeholder="Имя" required>
         <input type="number" name="age" id="age" placeholder="Возраст" required>

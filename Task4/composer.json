@@ -1,6 +1,7 @@
 {
     "require": {
-        "twig/twig": "^3.20"
+        "twig/twig": "^3.20",
+        "setasign/tfpdf": "^1.33"
     },
     "autoload": {
         "psr-4": {

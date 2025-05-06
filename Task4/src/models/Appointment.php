@@ -1,28 +1,19 @@
 <?php
-// Объявляет пространство имён для модели записей
 namespace App\models;
 
-// Подключает класс Database для работы с базой данных
 use App\core\Database;
 use PDO;
 
-// Определяет класс Appointment для работы с таблицей записей
 class Appointment {
-    // Приватное свойство для хранения объекта PDO (соединения с базой данных)
     private PDO $pdo;
 
-    // Конструктор класса, вызывается при создании объекта Appointment
     public function __construct() {
-        // Получает подключение к базе данных через класс Database
         $this->pdo = Database::connect();
     }
 
-    // Метод для добавления новой записи к тренеру
     public function addAppointment(string $clientName, string $phone, int $coachId): void {
-        // Подготавливает SQL-запрос с параметрами для вставки данных
         $stmt = $this->pdo->prepare("INSERT INTO appointments (client_name, phone, coach_id) VALUES (:client_name, :phone, :coach_id)");
 
-        // Выполняет запрос с переданными параметрами, предотвращая SQL-инъекции
         $stmt->execute([
             'client_name' => htmlspecialchars($clientName),
             'phone'       => $phone,
@@ -30,7 +21,35 @@ class Appointment {
         ]);
     }
 
-    // Метод для получения всех записей
+    public function isUserBooked(int $userId, int $coachId): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM appointments WHERE user_id = ? AND coach_id = ?");
+        $stmt->execute([$userId, $coachId]);
+        return $stmt->fetchColumn() > 0;
+    }
+    
+    public function bookUser(int $userId, int $coachId, string $name, string $phone): void {
+        $stmt = $this->pdo->prepare("INSERT INTO appointments (user_id, coach_id, client_name, phone) VALUES (?, ?, ?, ?)");
+        $stmt->execute([$userId, $coachId, $name, $phone]);
+    }
+    
+    public function cancelUserBooking(int $userId, int $coachId): void {
+        $stmt = $this->pdo->prepare("DELETE FROM appointments WHERE user_id = ? AND coach_id = ?");
+        $stmt->execute([$userId, $coachId]);
+    }
+    
+    public function getUserAppointmentCoachId(int $userId): ?int {
+        $stmt = $this->pdo->prepare("SELECT coach_id FROM appointments WHERE user_id = ? LIMIT 1");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch();
+        return $row ? (int)$row['coach_id'] : null;
+    }
+    
+    public function isCoachBooked(int $coachId): bool {
+        $stmt = $this->pdo->prepare("SELECT COUNT(*) FROM appointments WHERE coach_id = ?");
+        $stmt->execute([$coachId]);
+        return $stmt->fetchColumn() > 0;
+    }
+
     public function getAll(): array {
         $stmt = $this->pdo->query("
             SELECT 
@@ -45,7 +64,6 @@ class Appointment {
         return $stmt->fetchAll();
     }
 
-    // Метод для удаления записи
     public function deleteAppointment(int $id): void {
         $stmt = $this->pdo->prepare('DELETE FROM appointments WHERE id = :id');
         $stmt->execute(['id' => $id]);

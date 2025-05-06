@@ -6,7 +6,9 @@
 </head>
 <body>
     <h2>Запись к тренеру</h2>
-
+    {% if username %}
+        <p>Вы вошли как: {{ username }} | <a href="/logout">Выйти</a></p>
+    {% endif %}
     <form action="/appointments/add" method="POST">
         <input type="hidden" name="coach_id" value="{{ coach_id }}">
         <input type="text" name="name" placeholder="Ваше имя" required>

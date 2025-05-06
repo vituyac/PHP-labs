@@ -19,6 +19,15 @@
             'aliases' => array(),
             'dev_requirement' => false,
         ),
+        'setasign/tfpdf' => array(
+            'pretty_version' => 'v1.33',
+            'version' => '1.33.0.0',
+            'reference' => '050de12ab5359ce475dab49bae5cedbcf455f708',
+            'type' => 'library',
+            'install_path' => __DIR__ . '/../setasign/tfpdf',
+            'aliases' => array(),
+            'dev_requirement' => false,
+        ),
         'symfony/deprecation-contracts' => array(
             'pretty_version' => 'v3.5.1',
             'version' => '3.5.1.0',

@@ -8,7 +8,22 @@
 <body>
     <header>
         <h2>Список тренеров</h2>
-        <a href="/coaches/add" class="add-button">Добавить нового тренера</a>
+
+        <div class="head">
+            {% if username %}
+                <p>Вы вошли как: {{ username }} | <a href="/logout">Выйти</a></p>
+            {% else %}
+                <p><a href="/login">Войти</a></p>
+            {% endif %}
+            {% if is_admin %}
+                <a href="/coaches/add">Добавить нового тренера</a>
+            {% endif %}
+            {% if is_admin %}
+                <form method="POST" action="/coaches/report" style="display:inline;">
+                    <button class="appointment" type="submit">Отчёт</button>
+                </form>
+            {% endif %}
+        </div>
     </header>
 
     <table border="1">
@@ -21,6 +36,7 @@
             <th>Фитнес-клуб</th>
             <th>Действия</th>
         </tr>
+
         {% for coach in coaches %}
         <tr>
             <td>{{ coach.name }}</td>
@@ -30,14 +46,32 @@
             <td>{{ coach.email }}</td>
             <td>{{ gyms[coach.gym] ?? 'Неизвестно' }}</td>
             <td id="actions">
-                <form action="/coaches/delete" method="POST" onsubmit="return confirm('Точно удалить тренера {{ coach.name }}?');">
-                    <input type="hidden" name="id" value="{{ coach.id }}">
-                    <button type="submit" class="delete-button">Удалить</button>
-                </form>
-                <form action="/appointments/add" method="GET">
-                    <input type="hidden" name="coach_id" value="{{ coach.id }}">
-                    <button type="submit" class="appointment">Записаться</button>
-                </form>
+                {% if is_admin %}
+                    <form action="/coaches/delete" method="POST" onsubmit="return confirm('Точно удалить тренера {{ coach.name }}?');">
+                        <input type="hidden" name="id" value="{{ coach.id }}">
+                        <button type="submit" class="delete-button">Удалить</button>
+                    </form>
+                {% endif %}
+
+                {% if is_logged_in %}
+                    {% if coach.id == booked_coach_id %}
+                        <form action="/appointments/toggle" method="POST">
+                            <input type="hidden" name="coach_id" value="{{ coach.id }}">
+                            <button type="submit" class="appointment cancel">Отменить запись</button>
+                        </form>
+                    {% elseif coach.id in occupied_coach_ids %}
+                        <button class="appointment" disabled>Запись недоступна</button>
+                    {% else %}
+                        <form action="/appointments/toggle" method="POST">
+                            <input type="hidden" name="coach_id" value="{{ coach.id }}">
+                            <button type="submit" class="appointment">Записаться</button>
+                        </form>
+                    {% endif %}
+                {% else %}
+                    <form action="/login" method="GET">
+                        <button type="submit" class="appointment">Записаться</button>
+                    </form>
+                {% endif %}
             </td>
         </tr>
         {% endfor %}

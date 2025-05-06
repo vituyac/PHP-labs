@@ -53,6 +53,8 @@ class ComposerStaticInit19b0974c8ed31292a8cd7bea470e26f5
 
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
+        'TTFontFile' => __DIR__ . '/..' . '/setasign/tfpdf/font/unifont/ttfonts.php',
+        'tFPDF' => __DIR__ . '/..' . '/setasign/tfpdf/tfpdf.php',
     );
 
     public static function getInitializer(ClassLoader $loader)

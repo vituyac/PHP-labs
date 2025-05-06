@@ -9,6 +9,11 @@ h2 {
     margin-bottom: 20px;
 }
 
+.head {
+    display: flex;
+    gap: 10px;
+}
+
 table {
     width: 100%;
     border-collapse: collapse;

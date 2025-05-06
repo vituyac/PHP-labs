@@ -10,11 +10,12 @@
         <h2>Записи к тренерам</h2>
         <a href="/coaches" class="add-button">Назад к списку тренеров</a>
     </header>
-
+    {% if username %}
+        <p>Вы вошли как: {{ username }} | <a href="/logout">Выйти</a></p>
+    {% endif %}
     <table border="1">
         <tr>
             <th>Имя клиента</th>
-            <th>Телефон</th>
             <th>Тренер</th>
             <th>Действия</th>
         </tr>
@@ -22,7 +23,6 @@
         {% for appointment in appointments %}
         <tr>
             <td>{{ appointment.client_name }}</td>
-            <td>{{ appointment.phone }}</td>
             <td>{{ appointment.coach_name }}</td>
             <td>
                 <form action="/appointments/delete" method="POST" style="display:inline;" onsubmit="return confirm('Удалить запись клиента {{ appointment.client_name }}?');">
