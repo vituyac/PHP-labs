@@ -123,13 +123,11 @@ class CoachController {
 
         $coaches = $this->coachModel->getAll();
 
-        // Настройки
         $options = new Options();
-        $options->set('defaultFont', 'DejaVu Sans'); // Поддержка кириллицы
+        $options->set('defaultFont', 'DejaVu Sans');
         $options->set('isHtml5ParserEnabled', true);
         $dompdf = new Dompdf($options);
 
-        // HTML-содержимое
         $html = '<h2 style="text-align: center;">Отчет по тренерам</h2>';
         $html .= '<table border="1" cellpadding="5" cellspacing="0" width="100%">';
         $html .= '
