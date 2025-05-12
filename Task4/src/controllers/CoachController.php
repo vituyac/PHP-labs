@@ -7,7 +7,8 @@ use Twig\Loader\FilesystemLoader;
 use App\helpers\Auth;
 
 require __DIR__ . '/../../vendor/autoload.php';
-use tFPDF;
+use Dompdf\Dompdf;
+use Dompdf\Options;
 
 class CoachController {
     private Coach $coachModel;
@@ -113,46 +114,60 @@ class CoachController {
         header("Location: /coaches");
     }
 
-    public function report(): void {
+    public function report(): void
+    {
         if (!\App\helpers\Auth::isAdmin()) {
             header("Location: /coaches");
             exit;
         }
-    
+
         $coaches = $this->coachModel->getAll();
-    
-        $encodeText = function (string $text): string {
-            return iconv('UTF-8', 'CP1251//IGNORE', $text);
-        };
-    
-        $pdf = new tFPDF();
-        $pdf->AddPage();
-        
-        $pdf->AddFont('DejaVu', '', 'DejaVuSans.ttf', true);
-        $pdf->SetFont('DejaVu', '', 10);
-    
-        $pdf->Cell(10, 10, $encodeText('ID'), 1);
-        $pdf->Cell(35, 10, $encodeText('Name'), 1);
-        $pdf->Cell(15, 10, $encodeText('Age'), 1);
-        $pdf->Cell(20, 10, $encodeText('Gender'), 1);
-        $pdf->Cell(30, 10, $encodeText('Phone'), 1);
-        $pdf->Cell(50, 10, $encodeText('Email'), 1);
-        $pdf->Cell(30, 10, $encodeText('Gym'), 1);
-        $pdf->Ln();
-    
+
+        // Настройки
+        $options = new Options();
+        $options->set('defaultFont', 'DejaVu Sans'); // Поддержка кириллицы
+        $options->set('isHtml5ParserEnabled', true);
+        $dompdf = new Dompdf($options);
+
+        // HTML-содержимое
+        $html = '<h2 style="text-align: center;">Отчет по тренерам</h2>';
+        $html .= '<table border="1" cellpadding="5" cellspacing="0" width="100%">';
+        $html .= '
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Имя</th>
+                    <th>Возраст</th>
+                    <th>Пол</th>
+                    <th>Телефон</th>
+                    <th>Email</th>
+                    <th>Зал</th>
+                </tr>
+            </thead>
+            <tbody>
+        ';
+
         foreach ($coaches as $coach) {
-            $pdf->Cell(10, 10, $coach['id'], 1);
-            $pdf->Cell(35, 10, $encodeText($coach['name']), 1);
-            $pdf->Cell(15, 10, $encodeText($coach['age']), 1);
-            $pdf->Cell(20, 10, $encodeText($coach['gender']), 1);
-            $pdf->Cell(30, 10, $encodeText($coach['phone']), 1);
-            $pdf->Cell(50, 10, $encodeText($coach['email']), 1);
-            $pdf->Cell(30, 10, $encodeText($coach['gym']), 1);
-            $pdf->Ln();
+            $html .= '<tr>';
+            $html .= '<td>' . htmlspecialchars($coach['id']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['name']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['age']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['gender']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['phone']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['email']) . '</td>';
+            $html .= '<td>' . htmlspecialchars($coach['gym']) . '</td>';
+            $html .= '</tr>';
         }
-    
-        $pdf->Output('D', 'coaches_report.pdf');
+
+        $html .= '</tbody></table>';
+
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('A4', 'portrait');
+        $dompdf->render();
+
+        $dompdf->stream('coaches_report.pdf', ['Attachment' => true]);
         exit;
     }
+
     
 }

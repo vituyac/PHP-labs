@@ -18,7 +18,8 @@ COPY . .
 
 # Устанавливаем зависимости (включая twig и fawno/fpdf)
 RUN composer install || composer update
-RUN composer require setasign/tfpdf
+RUN composer require mpdf/mpdf
+RUN composer require dompdf/dompdf
 # Включаем mod_rewrite
 RUN a2enmod rewrite
 
